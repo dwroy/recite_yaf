@@ -11,21 +11,21 @@ class BaseModel
 	/**
 	 * mysql database connection
 	 */
-	protected $pdo;
+	private $pdo;
 
 	/**
 	 * redis database connection 
 	 * @var Redis
 	 */
-	protected $cache;
+	private $cache;
 
 	/**
 	 * data name used as table name or cache key prefix
 	 * @var string
 	 */
-	protected $name;
+	private $name;
 
-	/**
+    /**
 	 * get single object of a data class
 	 * @param string $className
 	 * @return Model 
@@ -40,6 +40,31 @@ class BaseModel
 
 		return self::$pool[ $name ];
 	}
+
+    public function __construct($name) 
+    {
+        $this->name = $name;
+    }
+
+    public function __get($name)
+    {
+        return $this->{'get'.$name}();
+    }
+
+    public function __set($name, $value)
+    {
+        $this->{'set'.$name}($value);
+    }
+
+    protected function name()
+    {
+        return $this->name;
+    }
+
+    protected function cache()
+    {
+        return $this->cache;
+    }
 
     /**
 	 * get mysql connection

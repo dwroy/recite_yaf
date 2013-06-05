@@ -5,7 +5,7 @@ class UserController extends BaseController
 {
 	public function showAction($uid) 
     {
-        $userModel = new UserModel;
+        $userModel = BaseModel::getInstance('User');
         $user = $userModel->fetch('id='.$uid);
 
         $this->renderJson($user);
