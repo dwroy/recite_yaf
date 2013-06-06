@@ -19,8 +19,72 @@ class UserModel extends BaseModel
         parent::__construct('user');
     }
 
-    public static function currentUser()
+    public function getId()
     {
+        return $this->id;
+    }
 
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function setName($name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    public function setEmail($email)
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPasswd()
+    {
+        return $this->passwd;
+    }
+
+    public function setPasswd($passwd)
+    {
+        $this->salt = uniqid('', true);
+        $this->passwd = sha1($passwd.$this->salt);
+
+        return $this;
+    }
+
+    public function checkPasswd($passwd)
+    {
+        return sha1($passwd.$this->salt) === $this->passwd;
+    }
+
+    public function save()
+    {
+        $data = [
+            'username' => $this->name,
+            'email' => $this->email,
+            'password' => $this->passwd,
+            'salt' => $this->salt
+        ];
+
+        $this->id ? $this->update($data, '`id`='.$this->id) : 
+            $this->id = $this->insert($data);
+    }
+
+    protected function initContent($data)
+    {
+        $this->id = $data['id'];
+        $this->name = $data['username'];
+        $this->email = $data['email'];
+        $this->passwd = $data['password'];
+        $this->salt = $data['salt'];
     }
 }

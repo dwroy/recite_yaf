@@ -9,8 +9,7 @@
  */
 class Bootstrap extends Yaf_Bootstrap_Abstract
 {
-
-	public function _init(Yaf_Dispatcher $dispatcher) 
+	public function _init(Yaf_Dispatcher $dispatcher)
     {
         $config = Yaf_Application::app()->getConfig();
         $dispatcher->getRouter()->addConfig($config->routes);
@@ -18,10 +17,9 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
 		Yaf_Registry::set('config', $config);
     }
 
-	public function _initPlugin(Yaf_Dispatcher $dispatcher) 
+	public function _initPlugin(Yaf_Dispatcher $dispatcher)
     {
-		//注册一个插件
-		$objSamplePlugin = new SamplePlugin();
-		$dispatcher->registerPlugin($objSamplePlugin);
+//		$objSamplePlugin = new SamplePlugin();
+//		$dispatcher->registerPlugin($objSamplePlugin);
 	}
 }

@@ -3,47 +3,19 @@
 class BaseModel 
 {
 	/**
-	 * singleton object
-	 * @var array
-	 */
-	private static $pool;
-
-	/**
 	 * mysql database connection
 	 */
 	private $pdo;
 
 	/**
-	 * redis database connection 
-	 * @var Redis
-	 */
-	private $cache;
-
-	/**
-	 * data name used as table name or cache key prefix
+	 * data table used as table table or cache key prefix
 	 * @var string
 	 */
-	private $name;
+	protected $table;
 
-    /**
-	 * get single object of a data class
-	 * @param string $className
-	 * @return Model 
-	 */
-	public static function getInstance( $name )
-	{
-		if( empty( self::$pool[ $name ] ) )
-		{
-            $class = $name . 'Model';
-			self::$pool[ $name ] = new $class;
-		}
-
-		return self::$pool[ $name ];
-	}
-
-    public function __construct($name) 
+    public function __construct($table) 
     {
-        $this->name = $name;
+        $this->table = $table;
     }
 
     public function __get($name)
@@ -54,16 +26,6 @@ class BaseModel
     public function __set($name, $value)
     {
         $this->{'set'.$name}($value);
-    }
-
-    protected function name()
-    {
-        return $this->name;
-    }
-
-    protected function cache()
-    {
-        return $this->cache;
     }
 
     /**
@@ -102,7 +64,7 @@ class BaseModel
 
 	protected function cacheKey( $uniqueId )
 	{
-		return $this->name . '-' . $uniqueId;
+		return $this->table . '-' . $uniqueId;
 	}
 	 */
 
@@ -121,7 +83,8 @@ class BaseModel
 			$values[] = $value;
 		}
 
-        $this->pdo()->exec( 'insert into `' . $this->name . '` (`' . implode( '`,`' , $columns ) . '`) values ("' . implode( '","' , $values ) . '")' );
+        $this->pdo()->exec( 'insert into `' . $this->table . '` (`' . implode( '`,`' , $columns ) . '`) values ("' . implode( '","' , $values ) . '")' );
+
         return $this->pdo->lastInsertId();
 	}
 
@@ -139,22 +102,26 @@ class BaseModel
 			$tmp .= '`' . $column . '`="' . $value . '",';
 		}
 
-		return $this->pdo()->exec( 'update `' . $this->name . '` set ' . substr( $tmp , 0 , -1 ) . ' where ' . $where);
+		return $this->pdo()->exec( 'update `' . $this->table . '` set ' . substr( $tmp , 0 , -1 ) . ' where ' . $where);
 	}
 
 	protected function delete( $where , $limit = '0,1' )
 	{
-		return $this->pdo()->exec( 'delete * from `' . $this->name . '` where ' . $where . ' ' . $limit );
+		return $this->pdo()->exec( 'delete * from `' . $this->table . '` where ' . $where . ' ' . $limit );
 	}
 
-	/**
-	 * get data from sql db
-	 * @return array
-	 */
-	public function fetch( $where )
-	{
-        return $this->pdo()->query( 'select * from `' . $this->name . '` where ' . $where . ' limit 0,1' )->fetch( PDO::FETCH_ASSOC );
-	}
+    public function findOneBy($criteria)
+    {
+        $where = '1=1';
+        foreach($criteria as $key => $value) $where .= " and `$key`='$value'";
+
+        $row = $this->pdo()->query('select * from `' . $this->table . 
+                '` where ' . $where . ' limit 0,1')->fetch(PDO::FETCH_ASSOC);
+
+        if($row) $this->initContent($row);
+
+        return $this; 
+    }
 
 	/**
 	 * find multi rows from sql db
@@ -162,12 +129,12 @@ class BaseModel
 	 */
 	public function fetchAll( $where , $order = '' , $limit = '' )
 	{
-		return $this->pdo()->query( 'select * from `' . $this->name . '` where ' . $where . ' ' . $order . ' ' . $limit )->fetchAll( PDO::FETCH_ASSOC );
+		return $this->pdo()->query( 'select * from `' . $this->table . '` where ' . $where . ' ' . $order . ' ' . $limit )->fetchAll( PDO::FETCH_ASSOC );
 	}
 
 	public function count( $where = '1=1' )
 	{
-		$row = $this->pdo()->query( 'select count(*) c from `' . $this->name . '` where ' . $where )->fetch( PDO::FETCH_ASSOC );
+		$row = $this->pdo()->query( 'select count(*) c from `' . $this->table . '` where ' . $where )->fetch( PDO::FETCH_ASSOC );
         return $row['c'];
 	}
 
