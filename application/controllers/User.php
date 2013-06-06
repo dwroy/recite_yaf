@@ -21,8 +21,8 @@ class UserController extends BaseController
 	public function signinAction()
     {
         $request = $this->getRequest();
-        $email = $request->getQuery('email');
-        $passwd = $request->getQuery('passwd');
+        $email = $request->getPost('email');
+        $passwd = $request->getPost('passwd');
 
         if(strlen($passwd) < 6) 
             throw new BaseException(BaseException::PASSWORD_TOO_SHORT);
@@ -63,12 +63,20 @@ class UserController extends BaseController
         $user->name = $email;
         $user->passwd = $passwd;
         $user->save();
-        Yaf_Session::getInstance()->set('uid', $user->id);
 
-        $this->renderJson([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email
-        ]);
+        if($user->id)
+        {
+            Yaf_Session::getInstance()->set('uid', $user->id);
+
+            $this->renderJson([
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email
+            ]);
+        }
+        else
+        {
+            throw new BaseException(BaseException::SERVER_ERROR);
+        }
     }
 }

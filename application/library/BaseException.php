@@ -3,6 +3,8 @@
 
 class BaseException extends Yaf_Exception
 {
+    const SERVER_ERROR = 1;
+
     const BAD_CREDENTIAL = 10;
 
     const METHOD_NOT_ALLOW = 11;

@@ -123,6 +123,25 @@ class BaseModel
         return $this; 
     }
 
+    public function findBy($criteria, $order = null, $limit = null)
+    {
+        $where = '1=1';
+        foreach($criteria as $key => $value) $where .= " and `$key`='$value'";
+
+        if($order)
+        {
+            list($column, $value) = each($order);
+            $order = 'order by '
+        }
+
+        $row = $this->pdo()->query('select * from `' . $this->table . 
+                '` where ' . $where . ' limit 0,1')->fetch(PDO::FETCH_ASSOC);
+
+        if($row) $this->initContent($row);
+
+        return $this; 
+    }
+
 	/**
 	 * find multi rows from sql db
 	 * @return array

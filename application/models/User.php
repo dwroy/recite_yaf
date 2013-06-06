@@ -69,9 +69,9 @@ class UserModel extends BaseModel
     public function save()
     {
         $data = [
-            'username' => $this->name,
+            'name' => $this->name,
             'email' => $this->email,
-            'password' => $this->passwd,
+            'passwd' => $this->passwd,
             'salt' => $this->salt
         ];
 
@@ -82,9 +82,9 @@ class UserModel extends BaseModel
     protected function initContent($data)
     {
         $this->id = $data['id'];
-        $this->name = $data['username'];
+        $this->name = $data['name'];
         $this->email = $data['email'];
-        $this->passwd = $data['password'];
+        $this->passwd = $data['passwd'];
         $this->salt = $data['salt'];
     }
 }
