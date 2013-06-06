@@ -1,7 +1,7 @@
 <?php
 
 
-class UserModel extends BaseModel
+class BookModel extends BaseModel
 {
     protected $id;
 

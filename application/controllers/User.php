@@ -38,7 +38,7 @@ class UserController extends BaseController
         if(!$user->checkPasswd($passwd))
             throw new BaseException(BaseException::PASSWORD_ERROR);
 
-        Yaf_Session::getInstance()->set('uid', $user->id);
+        $this->saveSession($user);
         $this->renderJson();
 	}
 
@@ -64,19 +64,36 @@ class UserController extends BaseController
         $user->passwd = $passwd;
         $user->save();
 
-        if($user->id)
-        {
-            Yaf_Session::getInstance()->set('uid', $user->id);
-
-            $this->renderJson([
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email
-            ]);
-        }
-        else
-        {
+        if(!$user->id)
             throw new BaseException(BaseException::SERVER_ERROR);
+
+        $this->saveSession($user);
+        $this->renderJson([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email
+        ]);
+    }
+
+    public function signoutAction()
+    {
+        Yaf_Session::getInstance()->del('uid');
+        $remember = Yaf_Registry::get('config')->get('security.remember_me');
+        setcookie($remember->key, '', 0, '/');
+        $this->renderJson();
+    }
+
+    private function saveSession($user, $rememberMe = true)
+    {
+        Yaf_Session::getInstance()->set('uid', $user->id);
+
+        if($rememberMe)
+        {
+            $remember = Yaf_Registry::get('config')->get('security.remember_me');
+            $time = time();
+            $expire = $time + $remember->duration * 24 * 3600;
+            setcookie($remember->key, $user->getAuthorizedKey($time), 
+                    $expire, '/');
         }
     }
 }

@@ -66,6 +66,25 @@ class UserModel extends BaseModel
         return sha1($passwd.$this->salt) === $this->passwd;
     }
 
+    public function findOneBy($criteria)
+    {
+        $row = $this->fetch($criteria);
+
+        if($row) $this->initContent($row);
+
+        return $this; 
+    }
+
+    public function getAuthorizedKey($time)
+    {
+        return sha1($this->passwd.$this->salt.$time).'_'.$time.'_'.$this->id;
+    }
+
+    protected function findBy($criteria, $order = null, $limit = 0, $offset = 0)
+    {
+        $rows = $this->fetchAll($criteria, $order, $limit, $offset);
+    }
+
     public function save()
     {
         $data = [

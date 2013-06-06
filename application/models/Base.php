@@ -110,46 +110,34 @@ class BaseModel
 		return $this->pdo()->exec( 'delete * from `' . $this->table . '` where ' . $where . ' ' . $limit );
 	}
 
-    public function findOneBy($criteria)
+    public function fetch($criteria)
     {
-        $where = '1=1';
-        foreach($criteria as $key => $value) $where .= " and `$key`='$value'";
+        $sql = 'select * from `'.$this->table.'` where 1=1';
 
-        $row = $this->pdo()->query('select * from `' . $this->table . 
-                '` where ' . $where . ' limit 0,1')->fetch(PDO::FETCH_ASSOC);
+        foreach($criteria as $key => $value) $sql .= " and `$key`='$value'";
 
-        if($row) $this->initContent($row);
-
-        return $this; 
+        return $this->pdo()->query($sql)->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function findBy($criteria, $order = null, $limit = null)
+    public function fetchAll($criteria, $order = null, $limit = 0, $offset = 0)
     {
-        $where = '1=1';
-        foreach($criteria as $key => $value) $where .= " and `$key`='$value'";
+        $sql = 'select * from `'.$this->table.'` where 1=1';
 
-        if($order)
+        if($criteria)
+            foreach($criteria as $key => $value) $sql .= " and `$key`='$value'";
+
+        if(is_array($order))
         {
             list($column, $value) = each($order);
-            $order = 'order by '
+            $sql .= " order by $column $value";
         }
 
-        $row = $this->pdo()->query('select * from `' . $this->table . 
-                '` where ' . $where . ' limit 0,1')->fetch(PDO::FETCH_ASSOC);
+        if($limit) $sql .= ' limit '.$offset.', '.$limit;
 
-        if($row) $this->initContent($row);
+        $result = $this->pdo()->query($sql);
 
-        return $this; 
+        return $result ? $result->fetchAll(PDO::FETCH_ASSOC) : [];
     }
-
-	/**
-	 * find multi rows from sql db
-	 * @return array
-	 */
-	public function fetchAll( $where , $order = '' , $limit = '' )
-	{
-		return $this->pdo()->query( 'select * from `' . $this->table . '` where ' . $where . ' ' . $order . ' ' . $limit )->fetchAll( PDO::FETCH_ASSOC );
-	}
 
 	public function count( $where = '1=1' )
 	{
