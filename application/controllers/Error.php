@@ -9,8 +9,8 @@ class ErrorController extends BaseController
 {
 
 	//从2.1开始, errorAction支持直接通过参数获取异常
-	public function errorAction($exception) {
-
-        $this->renderJson(null, $exception->getMessage(), $exception->getCode());
+	public function errorAction($exception) 
+    {
+        $this->renderJson(null, $exception->getMessage(), $exception->getCode() ?: 1);
 	}
 }

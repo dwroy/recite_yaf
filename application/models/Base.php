@@ -13,19 +13,29 @@ class BaseModel
 	 */
 	protected $table;
 
-    public function __construct($table) 
+    protected $cache = [];
+
+    protected static $models = [];
+
+    public static function getInstance($name)
+    {
+         if(empty(BaseModel::$models[$name]))
+         {
+             $class = $name.'Model';
+             BaseModel::$models[$name] = new $class;
+         }
+
+         return BaseModel::$models[$name];
+    }
+
+    protected function cache($key, $entity)
+    {
+        $this->cache[$key] = $entity;
+    }
+
+    public function __construct($table)
     {
         $this->table = $table;
-    }
-
-    public function __get($name)
-    {
-        return $this->{'get'.$name}();
-    }
-
-    public function __set($name, $value)
-    {
-        $this->{'set'.$name}($value);
     }
 
     /**
@@ -43,32 +53,12 @@ class BaseModel
 		return $this->pdo;
 	}
 
-	/** 
-	 * get cache connection
-	 * @return Reids
-	protected function initCache()
-	{
-		if( empty( $this->cache ) )
-		{
-			$this->cache = new Redis;
-			$config = c( 'cache' );
+    protected function fromCache($key)
+    {
+        return isset($this->cache[$key]) ? $this->cache[$key] : null;
+    }
 
-			if( !$this->cache->pconnect( $config['host'] , $config['port'] ) )
-			{
-				throw new KernelException( t( 'cache disconnected' ) , KernelException::CACHE_DISCONNECTED );
-			}
-		}
-
-		return $this->cache;
-	}
-
-	protected function cacheKey( $uniqueId )
-	{
-		return $this->table . '-' . $uniqueId;
-	}
-	 */
-
-	/**
+    /**
 	 * insert data
 	 * @param array $data
 	 * @return int 
@@ -113,8 +103,8 @@ class BaseModel
     public function fetch($criteria)
     {
         $sql = 'select * from `'.$this->table.'` where 1=1';
-
         foreach($criteria as $key => $value) $sql .= " and `$key`='$value'";
+        $sql .= ' limit 0,1';
 
         return $this->pdo()->query($sql)->fetch(PDO::FETCH_ASSOC);
     }
@@ -139,14 +129,10 @@ class BaseModel
         return $result ? $result->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
-	public function count( $where = '1=1' )
+	public function count($where = '1=1')
 	{
-		$row = $this->pdo()->query( 'select count(*) c from `' . $this->table . '` where ' . $where )->fetch( PDO::FETCH_ASSOC );
-        return $row['c'];
-	}
+        $sql = 'select count(*) c from `'.$this->table.'` where '.$where;
 
-	public function isExist( $column , $value )
-	{
-		return $this->count( "`{$column}`='{$value}'" );
+		return $this->pdo()->query($sql)->fetch( PDO::FETCH_ASSOC )['c'];
 	}
 }

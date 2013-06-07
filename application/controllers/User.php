@@ -6,9 +6,9 @@ class UserController extends BaseController
 	public function showAction($uid = 0)
     {
         if(!$uid) $uid = Yaf_Session::getInstance()->get('uid');
-        $user = $this->get('User')->findOneBy(['id' => $uid]);
+        $user = BaseModel::getInstance('User')->find($uid);
 
-        if(!$user->id) 
+        if(!$user->id)
             throw new BaseException(BaseException::USER_NOT_FOUND);
 
         $this->renderJson([
@@ -30,7 +30,7 @@ class UserController extends BaseController
         if(!$email || !filter_var($email, FILTER_VALIDATE_EMAIL))
             throw new BaseException(BaseException::EMAIL_FORMAT_ERROR);
 
-        $user = $this->get('User')->findOneBy(['email' => $email]);
+        $user = BaseModel::getInstance('User')->findOneBy(['email' => $email]);
 
         if(!$user->id) 
             throw new BaseException(BaseException::USER_NOT_FOUND);
@@ -54,15 +54,17 @@ class UserController extends BaseController
         if(!$email || !filter_var($email, FILTER_VALIDATE_EMAIL))
             throw new BaseException(BaseException::EMAIL_FORMAT_ERROR);
 
-        $user = $this->get('User')->findOneBy(['email' => $email]);
+        $userModel = BaseModel::getInstance('User');
+        $user = $userModel->findOneBy(['email' => $email]);
 
-        if($user->id)
+        if($user)
             throw new BaseException(BaseException::EMAIL_IS_USED);
 
+        $user = BaseModel::getInstance('User')->newEntity();
         $user->email = $email;
         $user->name = $email;
         $user->passwd = $passwd;
-        $user->save();
+        $userModel->save($user);
 
         if(!$user->id)
             throw new BaseException(BaseException::SERVER_ERROR);

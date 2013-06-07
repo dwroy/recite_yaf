@@ -3,7 +3,65 @@
 
 class UserModel extends BaseModel
 {
+    public function __construct() 
+    {
+        parent::__construct('user');
+    }
 
+    public function findOneBy($criteria)
+    {
+        $row = $this->fetch($criteria);
+
+        if($row)
+        {
+            $entity = (new UserEntity)->initContent($row);
+            $this->cache($entity->id, $entity);
+
+            return $entity;
+        }
+
+        return null;
+    }
+
+    public function find($id)
+    {
+        $entity = $this->fromCache($id);
+
+        if($entity) return $entity;
+
+        return $this->findOneBy(['id' => $id]);
+    }
+
+    protected function findBy($criteria, $order = null, $limit = 0, $offset = 0)
+    {
+        $rows = $this->fetchAll($criteria, $order, $limit, $offset);
+    }
+
+    public function save(UserEntity $entity)
+    {
+        $data = [
+            'name' => $entity->name,
+            'email' => $entity->email,
+            'passwd' => $entity->passwd,
+            'salt' => $entity->salt
+        ];
+
+        if($entity->id)
+            $this->update($data, '`id`='.$entity->id);
+        else
+            $entity->id = $this->insert($data);
+
+        $this->cache($entity->id, $entity);
+    }
+
+    public function newEntity()
+    {
+        return new UserEntity;
+    }
+}
+
+class UserEntity
+{
     protected $id;
 
     protected $name;
@@ -14,9 +72,21 @@ class UserModel extends BaseModel
 
     protected $salt;
 
-    public function __construct() 
+    public function __get($name) 
     {
-        parent::__construct('user');
+        return $this->{'get'.$name}();
+    }
+
+    public function __set($name, $value)
+    {
+        $this->{'set'.$name}($value);
+    }
+
+    public function setId($id)
+    {
+        return $this->id = $id;
+
+        return $this;
     }
 
     public function getId()
@@ -53,6 +123,11 @@ class UserModel extends BaseModel
         return $this->passwd;
     }
 
+    public function getSalt()
+    {
+        return $this->salt;
+    }
+
     public function setPasswd($passwd)
     {
         $this->salt = uniqid('', true);
@@ -66,44 +141,19 @@ class UserModel extends BaseModel
         return sha1($passwd.$this->salt) === $this->passwd;
     }
 
-    public function findOneBy($criteria)
-    {
-        $row = $this->fetch($criteria);
-
-        if($row) $this->initContent($row);
-
-        return $this; 
-    }
-
     public function getAuthorizedKey($time)
     {
         return sha1($this->passwd.$this->salt.$time).'_'.$time.'_'.$this->id;
     }
 
-    protected function findBy($criteria, $order = null, $limit = 0, $offset = 0)
-    {
-        $rows = $this->fetchAll($criteria, $order, $limit, $offset);
-    }
-
-    public function save()
-    {
-        $data = [
-            'name' => $this->name,
-            'email' => $this->email,
-            'passwd' => $this->passwd,
-            'salt' => $this->salt
-        ];
-
-        $this->id ? $this->update($data, '`id`='.$this->id) : 
-            $this->id = $this->insert($data);
-    }
-
-    protected function initContent($data)
+    public function initContent($data)
     {
         $this->id = $data['id'];
         $this->name = $data['name'];
         $this->email = $data['email'];
         $this->passwd = $data['passwd'];
         $this->salt = $data['salt'];
+
+        return $this;
     }
 }

@@ -16,7 +16,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
         $dispatcher->autoRender(false);
 		Yaf_Registry::set('config', $config);
 
-        $this->awakeFromAuthorizedKey($dispatcher->getRequest());
+        $this->awakeFromCookie($dispatcher->getRequest());
     }
 
 	public function _initPlugin(Yaf_Dispatcher $dispatcher)
@@ -25,7 +25,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
 //		$dispatcher->registerPlugin($objSamplePlugin);
 	}
 
-    private function awakeFromAuthorizedKey($request)
+    private function awakeFromCookie($request)
     {
         $session = Yaf_Session::getInstance();
         if($session->get('uid')) return;
@@ -37,7 +37,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
 
         if(count($keys) == 3)
         {
-            $user = (new UserModel)->findOneBy(['id' => $keys[2]]);
+            $user = BaseModel::getInstance('User')->findOneBy(['id' => $keys[2]]);
 
             if($key === $user->getAuthorizedKey($keys[1])
                     && $keys[1] + $duration > time())

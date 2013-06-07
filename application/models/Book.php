@@ -1,7 +1,14 @@
 <?php
 
-
 class BookModel extends BaseModel
+{
+    public function __construct() 
+    {
+        parent::__construct('book');
+    }
+}
+
+class BookEntity
 {
     protected $id;
 
@@ -12,11 +19,6 @@ class BookModel extends BaseModel
     protected $size;
 
     protected $level;
-
-    public function __construct() 
-    {
-        parent::__construct('book');
-    }
 
     public function getId()
     {
@@ -71,5 +73,7 @@ class BookModel extends BaseModel
         $this->description = $data['description'];
         $this->size = $data['size'];
         $this->level = $data['level'];
+
+        return $this;
     }
 }
